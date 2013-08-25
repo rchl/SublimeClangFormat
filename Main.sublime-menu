@@ -1,0 +1,31 @@
+[
+    {
+        "caption": "Preferences",
+        "mnemonic": "n",
+        "id": "preferences",
+        "children":
+        [
+            {
+                "caption": "Package Settings",
+                "mnemonic": "P",
+                "id": "package-settings",
+                "children":
+                [
+                    {
+                        "caption": "SublimeClangFormat",
+                        "children":
+                        [
+                            {
+                                "command": "open_file", "args":
+                                {
+                                    "file": "${packages}/SublimeClangFormat/Default.sublime-keymap"
+                                },
+                                "caption": "Key Bindings – Default"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]
