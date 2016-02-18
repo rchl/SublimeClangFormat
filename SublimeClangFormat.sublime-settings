@@ -1,0 +1,5 @@
+{
+  // Absolute path to the clang_format binary. If empty, the binary will be
+  // looked up in PATH.
+  "clang_format_path": ""
+}

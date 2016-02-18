@@ -17,6 +17,8 @@ import sublime
 import sublime_plugin
 import subprocess
 
+PREF_CLANG_FORMAT_PATH = 'clang_format_path'
+
 
 def platform_name():
   if 'linux' in sys.platform:
@@ -56,7 +58,12 @@ def which(program):
 
 class ClangFormatCommand(sublime_plugin.TextCommand):
   def run(self, edit):
-    binary_path = which(binary_name())
+    settings = sublime.load_settings('SublimeClangFormat.sublime-settings')
+    path = settings.get(PREF_CLANG_FORMAT_PATH)
+    if path:
+      binary_path = path
+    else:
+      binary_path = which(binary_name())
     if not binary_path:
       sublime.message_dialog(
           'To format the code, %s binary must be in the PATH!' % binary_name())
