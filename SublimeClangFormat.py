@@ -18,6 +18,7 @@ import sublime_plugin
 import subprocess
 
 PREF_CLANG_FORMAT_PATH = 'clang_format_path'
+PREF_FILE_NAME = 'SublimeClangFormat (%s).sublime-settings'
 
 
 def platform_name():
@@ -26,6 +27,14 @@ def platform_name():
   elif 'darwin' in sys.platform:
     return 'mac'
   return 'windows'
+
+
+def settings_filename():
+  if 'linux' in sys.platform:
+    return PREF_FILE_NAME % 'Linux'
+  elif 'darwin' in sys.platform:
+    return PREF_FILE_NAME % 'OSX'
+  return PREF_FILE_NAME % 'Windows'
 
 
 def binary_name():
@@ -38,10 +47,11 @@ def binary_name():
 style = 'Chromium'
 
 
-def which(program):
-  def is_exe(fpath):
-    return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+def is_exe(fpath):
+  return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
+
+def which(program):
   fpath, fname = os.path.split(program)
   if fpath:
     if is_exe(program):
@@ -58,15 +68,17 @@ def which(program):
 
 class ClangFormatCommand(sublime_plugin.TextCommand):
   def run(self, edit):
-    settings = sublime.load_settings('SublimeClangFormat.sublime-settings')
+    settings = sublime.load_settings(settings_filename())
     path = settings.get(PREF_CLANG_FORMAT_PATH)
     if path:
       binary_path = path
     else:
       binary_path = which(binary_name())
-    if not binary_path:
+    if not binary_path or not is_exe(binary_path):
       sublime.message_dialog(
-          'To format the code, %s binary must be in the PATH!' % binary_name())
+          'SublimeClangFormat\n\nTo format the code, either full path to the ' +
+          'clang-format binary must be specified in the package settings or ' +
+          binary_name() + ' binary must be in the PATH!')
       return
     encoding = self.view.encoding()
     if encoding == 'Undefined':
