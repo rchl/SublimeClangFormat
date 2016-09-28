@@ -1,10 +1,11 @@
 SublimeClangFormat
 ==================
 
-Code formatting plugin for Sublime Text editor for reformatting [Objective] C/C++ code.
+Code formatting plugin for Sublime Text editor for reformatting
+C/C++/Objective C/Javascript and WebIdl code.
 
 Usage
 =====
 
-Select a text to reformat and press ctrl+shift+q.
-Alternatively press the shortcut without selecting any text to reformat current line/statement.
+Press the <key>CTRL</key> + <key>SHIFT</key> + <key>Q</key> shortcut to
+reformat either the current current line or selection.

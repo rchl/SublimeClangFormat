@@ -1,4 +1,7 @@
 {
+  // This file can not be edited.
+  // Put all customizations in "Settings – User" configuration.
+
   // Absolute path to the clang_format binary. If empty, the binary will be
   // looked up in PATH.
   "clang_format_path": ""

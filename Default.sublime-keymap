@@ -3,7 +3,11 @@
     "command": "clang_format",
     "keys": ["ctrl+shift+q"],
     "context": [
-      { "key": "selector", "operator": "equal", "operand": "source.c, source.c++, source.objc, source.objc++, source.js" },
+      {
+        "key": "selector",
+        "operator": "equal",
+        "operand": "source.c, source.c++, source.objc, source.objc++, source.js, source.webidl"
+      },
     ],
   }
 ]
