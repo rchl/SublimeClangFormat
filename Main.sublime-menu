@@ -12,48 +12,25 @@
         "children":
         [
           {
-            "caption": "SublimeClangFormat",
+            "caption": "ClangFormat",
             "children":
             [
               {
-                "command": "open_file",
-                "args": {"file": "${packages}/SublimeClangFormat/SublimeClangFormat.sublime-settings"},
-                "caption": "Settings – Default"
-              },
-              {
-                "command": "open_file",
+                "caption": "Settings",
+                "command": "edit_settings",
                 "args": {
-                  "file": "${packages}/User/SublimeClangFormat (Windows).sublime-settings",
-                  "platform": "Windows"
-
-                },
-                "caption": "Settings – User"
-              },
-              {
-                "command": "open_file",
-                "args": {
-                  "file": "${packages}/User/SublimeClangFormat (OSX).sublime-settings",
-                  "platform": "OSX"
-
-                },
-                "caption": "Settings – User"
-              },
-              {
-                "command": "open_file",
-                "args": {
-                  "file": "${packages}/User/SublimeClangFormat (Linux).sublime-settings",
-                  "platform": "Linux"
-
-                },
-                "caption": "Settings – User"
+                  "base_file": "${packages}/ClangFormat/ClangFormat.sublime-settings",
+                  "default": "// Settings in here override those in \"ClangFormat/ClangFormat.sublime-settings\"\n\n{\n\t$0\n}\n",
+                }
               },
               { "caption": "-" },
               {
-                "command": "open_file", "args":
-                {
-                  "file": "${packages}/SublimeClangFormat/Default.sublime-keymap"
-                },
-                "caption": "Key Bindings – Default"
+                "caption": "Key Bindings",
+                "command": "edit_settings",
+                "args": {
+                  "base_file": "${packages}/ClangFormat/Default.sublime-keymap",
+                  "user_file": "${packages}/User/Default (${platform}).sublime-keymap"
+                }
               }
             ]
           }

@@ -110,7 +110,7 @@ class ClangFormatCommand(sublime_plugin.TextCommand):
         super().__init__(view)
         self._indicator = None
 
-    def run(self, edit):
+    def run(self, edit, only_selection=True):
         settings = sublime.load_settings(settings_filename())
         binary_path = settings.get(PREF_CLANG_FORMAT_PATH)
         if not binary_path:
@@ -125,12 +125,11 @@ class ClangFormatCommand(sublime_plugin.TextCommand):
         else:
             print('Checking style without knowing file type. Results might be innacurate!')
 
-        regions = []
-        for region in self.view.sel():
-            regions.append(region)
-            region_offset = min(region.a, region.b)
-            region_length = abs(region.b - region.a)
-            args.extend(['-offset', str(region_offset), '-length', str(region_length)])
+        if only_selection:
+            for region in self.view.sel():
+                region_offset = min(region.a, region.b)
+                region_length = abs(region.b - region.a)
+                args.extend(['-offset', str(region_offset), '-length', str(region_length)])
 
         buffer_text = self.view.substr(sublime.Region(0, self.view.size()))
         encoding = self.view.encoding()

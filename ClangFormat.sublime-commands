@@ -1,0 +1,13 @@
+[
+    {
+        "caption": "ClangFormat: Format Selection",
+        "command": "clang_format",
+    },
+    {
+        "caption": "ClangFormat: Format Document",
+        "command": "clang_format",
+        "args": {
+            "only_selection": false,
+        },
+    },
+]

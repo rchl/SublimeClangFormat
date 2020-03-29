@@ -1,13 +1,32 @@
 [
-  {
-    "command": "clang_format",
-    "keys": ["ctrl+shift+q"],
-    "context": [
-      {
-        "key": "selector",
-        "operator": "equal",
-        "operand": "source.c, source.c++, source.objc, source.objc++, source.js, source.webidl"
-      },
-    ],
-  }
+  // Example key-binding that can be copied to user keybindings.
+
+  // Formats current line or selection.
+  // {
+  //   "command": "clang_format",
+  //   "keys": ["ctrl+shift+q"],
+  //   "context": [
+  //     {
+  //       "key": "selector",
+  //       "operator": "equal",
+  //       "operand": "source.c, source.c++, source.objc, source.objc++, source.js, source.webidl"
+  //     },
+  //   ],
+  // },
+
+  // Formats whole document.
+  // {
+  //   "command": "clang_format",
+  //   "args": {
+  //     "only_selection": false,
+  //   },
+  //   "keys": ["ctrl+shift+d"],
+  //   "context": [
+  //     {
+  //       "key": "selector",
+  //       "operator": "equal",
+  //       "operand": "source.c, source.c++, source.objc, source.objc++, source.js, source.webidl"
+  //     },
+  //   ],
+  // },
 ]
