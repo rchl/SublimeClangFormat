@@ -18,13 +18,15 @@ import sublime_plugin
 import subprocess
 import threading
 
+from sublime_lib import ActivityIndicator
+
 PREF_CLANG_FORMAT_PATH = 'clang_format_path'
 PREF_FILE_NAME = 'SublimeClangFormat (%s).sublime-settings'
 MISSING_BINARY_MESSAGE = 'SublimeClangFormat\n\nTo format the code, either full path to the \
 clang-format binary must be specified in the package settings or %s binary must be in the PATH!'
 
 
-def run_command(on_exit, on_error, popen_args, stdin):
+def start_thread(on_exit, on_error, popen_args, stdin):
     """
     Runs the given args in a subprocess.Popen, and then calls the function
     on_exit when the subprocess completes.
@@ -104,23 +106,26 @@ def which(program):
 
 
 class ClangFormatCommand(sublime_plugin.TextCommand):
+    def __init__(self, view):
+        super().__init__(view)
+        self._indicator = None
+
     def run(self, edit):
         settings = sublime.load_settings(settings_filename())
-        path = settings.get(PREF_CLANG_FORMAT_PATH)
-        if path:
-            binary_path = path
-        else:
+        binary_path = settings.get(PREF_CLANG_FORMAT_PATH)
+        if not binary_path:
             binary_path = which(binary_name())
-        if not binary_path or not is_exe(binary_path):
-            sublime.message_dialog(MISSING_BINARY_MESSAGE % binary_name())
-            return
-        regions = []
+            if not binary_path or not is_exe(binary_path):
+                sublime.message_dialog(MISSING_BINARY_MESSAGE % binary_name())
+                return
+
         args = [binary_path, '-fallback-style', style]
         if self.view.file_name():
             args.extend(['-assume-filename', self.view.file_name()])
         else:
             print('Checking style without knowing file type. Results might be innacurate!')
 
+        regions = []
         for region in self.view.sel():
             regions.append(region)
             region_offset = min(region.a, region.b)
@@ -128,12 +133,15 @@ class ClangFormatCommand(sublime_plugin.TextCommand):
             args.extend(['-offset', str(region_offset), '-length', str(region_length)])
 
         buffer_text = self.view.substr(sublime.Region(0, self.view.size()))
-        self.view.window().status_message('ClangFormat: Formatting...')
         encoding = self.view.encoding()
         encoding = encoding if encoding != 'Undefined' else 'utf-8'
         stdin = buffer_text.encode(encoding)
         viewport_pos = self.view.viewport_position()
-        run_command(
+        # Show progress indicator if formatting takes longer than 1s.
+        self._indicator = ActivityIndicator(self.view, 'ClangFormat: Formatting...')
+        sublime.set_timeout(self.start_indicator, 1000)
+
+        start_thread(
             lambda output: self.on_formatting_success(viewport_pos, output, encoding),
             self.on_formatting_error,
             args,
@@ -141,13 +149,24 @@ class ClangFormatCommand(sublime_plugin.TextCommand):
         )
 
     def on_formatting_success(self, viewport_pos, output, encoding):
+        self.stop_indicator()
         self.view.run_command('clang_format_apply', {
             'output': output.decode(encoding),
             'viewport_pos': viewport_pos,
         })
 
     def on_formatting_error(self, error):
+        self.stop_indicator()
         self.view.window().status_message('ClangFormat: Formatting error: %s' % error)
+
+    def start_indicator(self):
+        if self._indicator:
+            self._indicator.start()
+
+    def stop_indicator(self):
+        if self._indicator:
+            self._indicator.stop()
+            self._indicator = None
 
 
 class ClangFormatApplyCommand(sublime_plugin.TextCommand):
