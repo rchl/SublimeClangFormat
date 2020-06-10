@@ -21,8 +21,8 @@ import threading
 from sublime_lib import ActivityIndicator
 
 PREF_CLANG_FORMAT_PATH = 'clang_format_path'
-PREF_FILE_NAME = 'SublimeClangFormat (%s).sublime-settings'
-MISSING_BINARY_MESSAGE = 'SublimeClangFormat\n\nTo format the code, either full path to the \
+PREF_FILE_NAME = 'ClangFormat (%s).sublime-settings'
+MISSING_BINARY_MESSAGE = 'ClangFormat\n\nTo format the code, either full path to the \
 clang-format binary must be specified in the package settings or %s binary must be in the PATH!'
 
 
