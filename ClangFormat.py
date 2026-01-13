@@ -18,7 +18,9 @@ import sublime_plugin
 import subprocess
 import threading
 
+from collections.abc import Callable
 from sublime_lib import ActivityIndicator
+from typing import override
 
 PREF_CLANG_FORMAT_PATH = 'clang_format_path'
 PREF_FILE_NAME = 'ClangFormat (%s).sublime-settings'
@@ -26,22 +28,28 @@ MISSING_BINARY_MESSAGE = 'ClangFormat\n\nTo format the code, either full path to
 clang-format binary must be specified in the package settings or %s binary must be in the PATH!'
 
 
-def start_thread(on_exit, on_error, popen_args, stdin):
+def start_thread(
+    on_exit: Callable[[bytes], None], on_error: Callable[[bytes], None], popen_args: list[str], stdin: bytes
+) -> threading.Thread:
     """
+    Start a process in a new thread.
+
     Runs the given args in a subprocess.Popen, and then calls the function
     on_exit when the subprocess completes.
     on_exit is a callable object, and popen_args is a list/tuple of args that
     on_error when the subprocess throws an error
     would give to subprocess.Popen.
     """
-    def run_in_thread(on_exit, on_error, popen_args):
+    def run_in_thread(
+        on_exit: Callable[[bytes], None], on_error: Callable[[bytes], None], popen_args: list[str]
+    ) -> None:
         startupinfo = None
         # Don't let console window pop-up on Windows.
         if platform_name() == 'windows':
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             startupinfo.wShowWindow = subprocess.SW_HIDE
-        process = subprocess.Popen(popen_args,
+        process = subprocess.Popen(popen_args,  # noqa: S603
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE,
                                    stdin=subprocess.PIPE,
@@ -59,7 +67,7 @@ def start_thread(on_exit, on_error, popen_args, stdin):
     return thread
 
 
-def platform_name():
+def platform_name() -> str:
     if 'linux' in sys.platform:
         return 'linux'
     elif 'darwin' in sys.platform:
@@ -67,15 +75,15 @@ def platform_name():
     return 'windows'
 
 
-def settings_filename():
+def settings_filename() -> str:
     if 'linux' in sys.platform:
         return PREF_FILE_NAME % 'Linux'
-    elif 'darwin' in sys.platform:
+    if 'darwin' in sys.platform:
         return PREF_FILE_NAME % 'OSX'
     return PREF_FILE_NAME % 'Windows'
 
 
-def binary_name():
+def binary_name() -> str:
     if 'win32' in sys.platform:
         return 'clang-format.exe'
     return 'clang-format'
@@ -86,19 +94,18 @@ def binary_name():
 style = 'Chromium'
 
 
-def is_exe(fpath):
+def is_exe(fpath: str) -> bool:
     return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
 
-def which(program):
+def which(program: str) -> str | None:
     fpath, fname = os.path.split(program)
     if fpath:
         if is_exe(program):
             return program
     else:
         for path in os.environ['PATH'].split(os.pathsep):
-            path = path.strip('"')
-            exe_file = os.path.join(path, program)
+            exe_file = os.path.join(path.strip('"'), program)
             if is_exe(exe_file):
                 return exe_file
 
@@ -106,13 +113,14 @@ def which(program):
 
 
 class ClangFormatCommand(sublime_plugin.TextCommand):
-    def __init__(self, view):
+    def __init__(self, view: sublime.View):
         super().__init__(view)
         self._indicator = None
 
-    def run(self, edit, only_selection=True):
+    @override
+    def run(self, edit: sublime.Edit, only_selection: bool=True):
         settings = sublime.load_settings(settings_filename())
-        binary_path = settings.get(PREF_CLANG_FORMAT_PATH)
+        binary_path: str | None = settings.get(PREF_CLANG_FORMAT_PATH)
         if not binary_path:
             binary_path = which(binary_name())
             if not binary_path or not is_exe(binary_path):
@@ -120,8 +128,9 @@ class ClangFormatCommand(sublime_plugin.TextCommand):
                 return
 
         args = [binary_path, '-fallback-style', style]
-        if self.view.file_name():
-            args.extend(['-assume-filename', self.view.file_name()])
+        file_name = self.view.file_name()
+        if file_name:
+            args.extend(['-assume-filename', file_name])
         else:
             print('Checking style without knowing file type. Results might be innacurate!')
 
@@ -147,29 +156,31 @@ class ClangFormatCommand(sublime_plugin.TextCommand):
             stdin
         )
 
-    def on_formatting_success(self, viewport_pos, output, encoding):
+    def on_formatting_success(self, viewport_pos, output: bytes, encoding: str) -> None:
         self.stop_indicator()
         self.view.run_command('clang_format_apply', {
             'output': output.decode(encoding),
             'viewport_pos': viewport_pos,
         })
 
-    def on_formatting_error(self, error):
+    def on_formatting_error(self, error: bytes) -> None:
         self.stop_indicator()
-        self.view.window().status_message('ClangFormat: Formatting error: %s' % error)
+        self.view.window().status_message('ClangFormat: Formatting error: %s' % error.decode('utf-8'))
 
-    def start_indicator(self):
+    def start_indicator(self) -> None:
         if self._indicator:
             self._indicator.start()
 
-    def stop_indicator(self):
+    def stop_indicator(self) -> None:
         if self._indicator:
             self._indicator.stop()
             self._indicator = None
 
 
 class ClangFormatApplyCommand(sublime_plugin.TextCommand):
-    def run(self, edit, output, viewport_pos):
+
+    @override
+    def run(self, edit: sublime.Edit, output: str, viewport_pos):
         self.view.window().status_message('ClangFormat: Formatted')
         self.view.replace(edit, sublime.Region(0, self.view.size()), output)
         # FIXME: Without the 10ms delay, the viewport sometimes jumps.
